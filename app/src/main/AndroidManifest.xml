@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
           package="com.oopssang.book">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <meta-data android:name="com.kakao.sdk.AppKey" android:value="0cb9baec6026922e4ae87354751a2605"/>
     <application
             android:name=".MyApplication"
             android:allowBackup="true"

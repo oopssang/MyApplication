@@ -27,10 +27,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.oopssang.book.R
+import com.oopssang.book.adapter.BookAdapter
 import com.oopssang.book.api.service.SearchBookService
+import com.oopssang.book.viewmodels.BookViewModel
 import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -39,7 +45,10 @@ import kotlinx.coroutines.launch
 
 class SearchFragment : Fragment() {
 
-    var preText = ""
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var viewAdapter: RecyclerView.Adapter<*>
+    private lateinit var viewManager: RecyclerView.LayoutManager
+    private lateinit var bookViewModel: BookViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,10 +67,29 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+
+        bookViewModel = ViewModelProviders.of(requireActivity())[BookViewModel::class.java]
+
+        viewManager = LinearLayoutManager(context)
+        viewAdapter = BookAdapter(context!!, viewLifecycleOwner, bookViewModel)
+
+        recyclerView = view.findViewById<RecyclerView>(R.id.rv_result).apply {
+            setHasFixedSize(true)
+            layoutManager = viewManager
+            adapter = viewAdapter
+        }
+
         iv_search.setOnClickListener {
             GlobalScope.launch(Dispatchers.Main) {
-                val response = SearchBookService.create().searchBook(et_search.text.toString(), 1, 50)
-                Log.d("test", response.toString())
+                val name = et_search.text.toString()
+                if(name?.length > 0){
+                    val response = SearchBookService.create().searchBook(name, 1, 2)
+                    Log.d("test1234", response.toString())
+
+                    bookViewModel.getSearchBookResponse().postValue(response)
+                    viewAdapter.notifyDataSetChanged()
+                    Log.d("test1234", "notifyDataSetChanged")
+                }
             }
         }
     }

@@ -26,12 +26,20 @@
             android:layout_alignParentRight="true"
             android:layout_margin="5dp" />
 
+    <Button
+            android:id="@+id/btn_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="텍스트 우선 레이아웃"
+            android:textSize="14dp"
+            android:layout_below="@id/et_search"/>
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_result"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="60dp" />
+            android:layout_below="@id/btn_type"
+            android:layout_marginTop="5dp" />
 
 
 </RelativeLayout>

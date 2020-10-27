@@ -5,8 +5,8 @@ import Meta
 import com.google.gson.annotations.SerializedName
 
 data class SearchBookResponse(
-    @SerializedName("Documents")
+    @SerializedName("documents")
     val documents : List<Documents>,
-    @SerializedName("Meta")
+    @SerializedName("meta")
     val meta : Meta
 )

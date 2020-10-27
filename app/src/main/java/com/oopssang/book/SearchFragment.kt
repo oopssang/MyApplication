@@ -21,10 +21,12 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.oopssang.book.R
@@ -50,27 +52,18 @@ class SearchFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_main, container, false)
 
-        val et_search: EditText? = view.findViewById(R.id.et_search)
-        et_search!!.addTextChangedListener(object : TextWatcher {
-            //변경되기전 문자열을 담고있다.
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            }
-
-            override fun afterTextChanged(s: Editable) {
-                preText = s.toString()
-                Handler(Looper.getMainLooper()).postDelayed({
-                    GlobalScope.launch(Dispatchers.Main) {
-                        val response = SearchBookService.create().searchBook(preText, 1, 50)
-                    }
-                }, 500)
-            }
-        })
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        iv_search.setOnClickListener {
+            GlobalScope.launch(Dispatchers.Main) {
+                val response = SearchBookService.create().searchBook(et_search.text.toString(), 1, 50)
+                Log.d("test", response.toString())
+            }
+        }
     }
 
 //    protected override fun onCreate(savedInstanceState: Bundle?) {

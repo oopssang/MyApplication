@@ -1,15 +1,12 @@
 package com.oopssang.book.views
 
 import Documents
-import android.content.Context
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.oopssang.book.R
 import com.oopssang.book.SearchFragment
-import com.oopssang.book.viewmodels.BookViewModel
 import com.squareup.picasso.Picasso
 
 class GridViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!) {

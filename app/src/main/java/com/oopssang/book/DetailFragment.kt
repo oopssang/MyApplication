@@ -1,34 +1,19 @@
 package com.oopssang.book
 
 import Documents
-import android.app.AlertDialog
-import android.content.Context.INPUT_METHOD_SERVICE
-import android.content.DialogInterface
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.NewInstanceFactory
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.oopssang.book.adapter.BookAdapter
-import com.oopssang.book.api.service.SearchBookService
 import com.oopssang.book.viewmodels.BookViewModel
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.fragment_main.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class DetailFragment : Fragment() {
 

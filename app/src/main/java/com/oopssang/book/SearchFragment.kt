@@ -1,39 +1,23 @@
-/*
- * Copyright 2018 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package com.oopssang.book
 
-package com.google.samples.apps.sunflower
-
+import android.app.AlertDialog
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.content.DialogInterface
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.oopssang.book.R
 import com.oopssang.book.adapter.BookAdapter
 import com.oopssang.book.api.service.SearchBookService
 import com.oopssang.book.viewmodels.BookViewModel
@@ -42,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-
 class SearchFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
@@ -50,9 +33,8 @@ class SearchFragment : Fragment() {
     private lateinit var viewManager: RecyclerView.LayoutManager
     private lateinit var bookViewModel: BookViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private var page = 1
+    private var isAdd = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,104 +42,118 @@ class SearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_main, container, false)
-
-
         return view
+    }
+
+    interface onItemClick{
+        fun onClick(position: Int)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+        val factory: ViewModelProvider.Factory = NewInstanceFactory()
+        bookViewModel = requireActivity()?.let { ViewModelProvider(it, factory).get(BookViewModel::class.java) }!!
 
-        bookViewModel = ViewModelProviders.of(requireActivity())[BookViewModel::class.java]
+        bookViewModel.getSearchBookResponse().observe(viewLifecycleOwner, Observer {
+            if(isAdd) {
+                (viewAdapter as BookAdapter).addAll(it.documents)
+            } else {
+                (viewAdapter as BookAdapter).replaceAll(it.documents)
+            }
+            viewAdapter.notifyDataSetChanged()
+        })
 
         viewManager = LinearLayoutManager(context)
-        viewAdapter = BookAdapter(context!!, viewLifecycleOwner, bookViewModel)
+        viewAdapter = BookAdapter(context!!, object : onItemClick {
+            override fun onClick(position: Int) {
+                Log.d("test", "onItemClick() position : " + position)
+                val fragment = DetailFragment.newInstance(position)
+                val transaction = activity?.supportFragmentManager?.beginTransaction()
+                transaction?.replace(R.id.container, fragment)
+                transaction?.addToBackStack("detail")
+                transaction?.commit()
+            }
+        })
 
         recyclerView = view.findViewById<RecyclerView>(R.id.rv_result).apply {
-            setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
         }
 
-        iv_search.setOnClickListener {
-            GlobalScope.launch(Dispatchers.Main) {
-                val name = et_search.text.toString()
-                if(name?.length > 0){
-                    val response = SearchBookService.create().searchBook(name, 1, 2)
-                    Log.d("test1234", response.toString())
-
-                    bookViewModel.getSearchBookResponse().postValue(response)
-                    viewAdapter.notifyDataSetChanged()
-                    Log.d("test1234", "notifyDataSetChanged")
+        // 스크롤 감지
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (!recyclerView.canScrollVertically(1)) {
+                    isAdd = true
+                    searchBook()
+                    hideKeyboard()
                 }
             }
+        })
+
+        btn_type.setOnClickListener {
+            val dialog = AlertDialog.Builder(context)
+                .setTitle("뷰 타입정하기")
+                .setNegativeButton("텍스트우선", DialogInterface.OnClickListener { dialog, which ->
+                    viewManager = LinearLayoutManager(context)
+                    recyclerView.layoutManager = viewManager
+                    (viewAdapter as BookAdapter).viewType = 0
+                    btn_type.text = "텍스트 우선"
+                    viewAdapter.notifyDataSetChanged()}
+                )
+                .setPositiveButton("이미지우선", DialogInterface.OnClickListener { dialog, which ->
+                    viewManager = GridLayoutManager(context, 2)
+                    recyclerView.layoutManager = viewManager
+                    (viewAdapter as BookAdapter).viewType = 1
+                    btn_type.text = "이미지우선"
+                    viewAdapter.notifyDataSetChanged()}
+                )
+                .create()
+            dialog.show()
         }
-    }
 
-//    protected override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_main)
-//        editText = findViewById(R.id.editText)
-//        editText.addTextChangedListener(object : TextWatcher {
-//            //변경되기전 문자열을 담고있다.
-//            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-//                preText = s.toString()
-//            }
-//
-//            //텍스트가 변경될때 마다 호출된다. 보통은 이 함수안에 이벤트를 많이 사용하는것 같다.
-//            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-////밑의 editText.setText(number+""); 가 실행되면 onTextChanged()함수가 계속해서 다시 호출 되기 때문에 추가했다.
-//                if (s.toString() == preText) return  //editText에 포커스가 되어있고 텍스트가 하나라도 입력되어 있을때 동작하기 위해서 추가.
-//                if (editText.isFocusable() && s.toString() != "") {
-//                    try {
-//                        number = editText.getText().toString().toInt()
-//                    } catch (e: NumberFormatException) {
-//                        e.printStackTrace()
-//                        return
-//                    }
-//                    //100이 넘을 경우 100으로 변경
-//                    if (number > 100) {
-//                        number = 100
-//                    }
-//                    editText.setText(number.toString() + "")
-//                }
-//            } //텍스트가 변경된 이후에 호출.
-//
-//            override fun afterTextChanged(s: Editable) {}
-//        })
-//    }
-
-
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-    }
-
-    override fun onStart() {
-        super.onStart()
+        iv_search.setOnClickListener {
+            isAdd = false
+            searchBook()
+            hideKeyboard()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
+        et_search.addTextChangedListener(textWatcher)
     }
 
     override fun onStop() {
         super.onStop()
+        et_search.removeTextChangedListener(textWatcher)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    private val textWatcher = object : TextWatcher {
+        override fun afterTextChanged(s: Editable?) {
+        }
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+        }
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            isAdd = false
+            searchBook()
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    fun searchBook(){
+        GlobalScope.launch(Dispatchers.Main) {
+            val name = et_search.text.toString()
+            if(name?.length > 0){
+                val response = SearchBookService.create().searchBook(name, page, 50)
+                bookViewModel.getSearchBookResponse().postValue(response)
+            }
+        }
     }
 
-    override fun onDetach() {
-        super.onDetach()
+    fun hideKeyboard(){
+        val imm: InputMethodManager? = requireActivity().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager?
+        imm?.hideSoftInputFromWindow(et_search?.getWindowToken(), 0);
     }
+
 }

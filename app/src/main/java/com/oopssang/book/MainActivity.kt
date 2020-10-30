@@ -1,22 +1,28 @@
 package com.oopssang.book
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.google.samples.apps.sunflower.SearchFragment
-import com.kakao.sdk.common.util.Utility
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.oopssang.book.viewmodels.BookViewModel
 
 class MainActivity : AppCompatActivity() {
 
     val manager = supportFragmentManager
 
+    private val bookViewModel: BookViewModel by lazy {
+        ViewModelProvider(this@MainActivity, object : ViewModelProvider.Factory {
+            override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                return BookViewModel() as T
+            }
+        }).get(BookViewModel::class.java)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        var keyHash = Utility.getKeyHash(this)
-        Log.d("test", keyHash)
 
         val transaction = manager.beginTransaction()
         val fragment = SearchFragment()
@@ -24,4 +30,5 @@ class MainActivity : AppCompatActivity() {
         transaction.addToBackStack(null)
         transaction.commit()
     }
+
 }

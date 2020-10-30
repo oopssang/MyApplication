@@ -4,26 +4,34 @@ import Documents
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.oopssang.book.R
-import com.oopssang.book.viewmodels.BookViewModel
+import com.oopssang.book.SearchFragment
 import com.oopssang.book.views.GridViewHolder
 import com.oopssang.book.views.ListViewHolder
 
-class BookAdapter(val context: Context, val lifecycleOwner: LifecycleOwner, val BookViewModel: BookViewModel) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class BookAdapter(val context: Context, val onClickListener: SearchFragment.onItemClick) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var viewType: Int = 0
-    lateinit var itemlist: List<Documents>
+    private val items = mutableListOf<Documents>()
 
+    fun replaceAll(newItems: List<Documents>?) {
+        newItems?.let {
+            items.clear()
+            items.addAll(it)
+        }
+    }
+
+    fun addAll(newItems: List<Documents>?) {
+        newItems?.let {
+            items.addAll(it)
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        BookViewModel.getSearchBookResponse().observe(lifecycleOwner, Observer {
-            Log.d("test", "BookViewModel onCreateViewHolder")
-            itemlist = it.documents
-        })
+
         return when (viewType) {
             0 -> ListViewHolder(LayoutInflater.from(context).inflate(R.layout.listview_holder, parent, false))
             else -> GridViewHolder(LayoutInflater.from(context).inflate(R.layout.gridview_holder, parent, false))
@@ -32,21 +40,20 @@ class BookAdapter(val context: Context, val lifecycleOwner: LifecycleOwner, val 
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (getItemViewType(position)) {
-            0 -> (holder as ListViewHolder).bind(context, lifecycleOwner, BookViewModel, position)
-            else -> (holder as GridViewHolder).bind(context, lifecycleOwner, BookViewModel)
+            0 -> (holder as ListViewHolder).bind(
+                 items[position],
+                onClickListener
+            )
+            else -> (holder as GridViewHolder).bind(
+                items[position],
+                onClickListener
+            )
         }
     }
 
-    fun setItem(list: List<Documents>){
-        itemlist = list
-    }
 
     override fun getItemCount(): Int {
-        if(::itemlist.isInitialized) {
-            return itemlist?.size
-        } else {
-            return 0
-        }
+        return items?.size
     }
 
     override fun getItemViewType(position: Int): Int {

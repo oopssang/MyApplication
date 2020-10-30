@@ -1,17 +1,16 @@
 package com.oopssang.book.views
 
-import android.content.Context
-import android.util.Log
+import Documents
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.oopssang.book.R
-import com.oopssang.book.viewmodels.BookViewModel
+import com.oopssang.book.SearchFragment
+import com.squareup.picasso.Picasso
 
 class ListViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!) {
+
     private val iv_bookimage = itemView?.findViewById<ImageView>(R.id.iv_bookimage)
     private val iv_like = itemView?.findViewById<ImageView>(R.id.iv_like)
     private val tv_bookname = itemView?.findViewById<TextView>(R.id.tv_bookname)
@@ -20,13 +19,38 @@ class ListViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView!!) {
     private val tv_price = itemView?.findViewById<TextView>(R.id.tv_price)
 
 
-    fun bind(context: Context, lifecycleOwner: LifecycleOwner, viewModel: BookViewModel, position: Int) {
-        viewModel.getSearchBookResponse().observe(lifecycleOwner, Observer {
-            Log.d("test", "BookViewModel ListViewHolder")
-            tv_bookname!!.text = it.documents.get(position).title
-            tv_date!!.text = it.documents.get(position).datetime.substring(0,10)
-            tv_info!!.text = it.documents.get(position).contents
-            tv_price!!.text = it.documents.get(position).price.toString()
-        })
+    fun bind(data: Documents, onItemClick: SearchFragment.onItemClick) {
+        itemView.setOnClickListener {
+            onItemClick.onClick(adapterPosition)
+        }
+
+        if (!data.thumbnail.isEmpty()) {
+            Picasso.get()
+                .load(data.thumbnail)
+                .into(iv_bookimage)
+        }
+
+        setLike(data)
+        iv_like?.setOnClickListener {
+            data.isLike = !data.isLike
+            setLike(data)
+        }
+
+        tv_bookname!!.text = data.title
+        tv_date!!.text = data.datetime.substring(0,10)
+        tv_info!!.text = data.contents
+        tv_price!!.text = data.price.toString()
+    }
+
+    private fun setLike(data: Documents){
+        if(data.isLike){
+            Picasso.get()
+                .load(R.mipmap.star)
+                .into(iv_like)
+        } else {
+            Picasso.get()
+                .load(R.mipmap.star_dim)
+                .into(iv_like)
+        }
     }
 }
